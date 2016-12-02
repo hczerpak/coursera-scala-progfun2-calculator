@@ -11,33 +11,28 @@ final case class Divide(a: Expr, b: Expr) extends Expr
 object Calculator {
   def computeValues(
       namedExpressions: Map[String, Signal[Expr]]): Map[String, Signal[Double]] = {
-    namedExpressions mapValues( signal => Signal(eval(signal(), namedExpressions)))
+    namedExpressions mapValues ( signal => Signal(eval(signal(), namedExpressions)))
   }
 
-  def eval(expr: Expr, references: Map[String, Signal[Expr]]): Double = {
-    def eval(expr: Expr): Double = expr match {
+  def eval(expr: Expr, references: Map[String, Signal[Expr]]): Double =  expr match {
       case Literal(v) => v
-      case Plus(a, b) => eval(a) + eval(b)
-      case Minus(a, b) => eval(a) - eval(b)
-      case Times(a, b) => eval(a) * eval(b)
-      case Divide(a, b) => eval(a) / eval(b)
+      case Plus(a, b) => eval(a, references) + eval(b, references)
+      case Minus(a, b) => eval(a, references) - eval(b, references)
+      case Times(a, b) => eval(a, references) * eval(b, references)
+      case Divide(a, b) => eval(a, references) / eval(b, references)
       case Ref(name) =>
         val referenceExpr = getReferenceExpr(name, references)
-        if (expr == referenceExpr) Double.NaN else eval(referenceExpr)
-    }
-
-    eval(expr)
+        eval(referenceExpr, references - name)
   }
 
   /** Get the Expr for a referenced variables.
    *  If the variable is not known, returns a literal NaN.
    */
-  private def getReferenceExpr(name: String,
-      references: Map[String, Signal[Expr]]):Expr = {
+  private def getReferenceExpr(name: String, references: Map[String, Signal[Expr]]):Expr = {
     references.get(name).fold[Expr] {
       Literal(Double.NaN)
-    } { exprSignal =>
-      exprSignal()
+    } {
+      exprSignal => exprSignal()
     }
   }
 }
