@@ -51,4 +51,9 @@ class CalculatorSuite extends FunSuite with ShouldMatchers {
     assert(resultRed2() == "red")
   }
 
+  test("poly result") {
+    val delta = Polynomial.computeDelta(Signal(2), Signal(4), Signal(0))
+    val twoResults = Polynomial.computeSolutions(Signal(2), Signal(4), Signal(0), delta)()
+    assert(twoResults == Set(0, -2))
+  }
 }
